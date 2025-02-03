@@ -1,60 +1,68 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
+#include "hardware/timer.h"
 
-const uint8_t led_red_pino = 11;
+const uint8_t led_red_pino = 13;
 const uint8_t led_blue_pino = 12;
-const uint8_t led_green_pino = 13;
+const uint8_t led_green_pino = 11;
 
-static bool estado_red = false;
-static bool estado_blue = false;
-static bool estado_green = false;
+struct repeating_timer timer_red, timer_blue, timer_green;
 
+bool alternar_red();
+bool alternar_blue();
 void iniciar_pinos();
+bool alternar_green();
 
-int main()
-{
+int main() {
     stdio_init_all();
     iniciar_pinos();
 
-    struct repeating_timer timer;
-
-    add_repeating_timer_ms(-3000, alterna_led_red, NULL, &timer);
-    add_repeating_timer_ms(-6000, alterna_led_red, NULL, &timer);
-    add_repeating_timer_ms(-9000, alterna_led_red, NULL, &timer);
+    add_repeating_timer_ms(3000, alternar_red, NULL, &timer_red);
 
     while (true) {
-        if((estado_red == true) || (estado_blue == true) || (estado_green == true)){
-
-        }
-        else{
-            printf("Passou 1 segundo.\n");
-        }
+        printf("Status do Semáforo\n");
+        sleep_ms(1000);
     }
+
+    return 0;
 }
 
 void iniciar_pinos(){
+    //Iniciando leds
     gpio_init(led_red_pino);
     gpio_init(led_blue_pino);
-    gpio_init(led_red_pino);
+    gpio_init(led_green_pino);
     gpio_set_dir(led_red_pino, GPIO_OUT);
     gpio_set_dir(led_blue_pino, GPIO_OUT);
     gpio_set_dir(led_green_pino, GPIO_OUT);
 }
 
-void alterna_led_red(){
-    if((estado_red == false) || (estado_blue == false) || (estado_green == false)){
+bool alternar_red(){
+    gpio_put(led_red_pino, 1);
+    gpio_put(led_blue_pino, 0);
+    gpio_put(led_green_pino, 0);
 
-    }
+    add_repeating_timer_ms(3000, alternar_blue, NULL, &timer_blue);
 
-    return true;
+    return false;
 }
 
-void alterna_led_blue(){
+bool alternar_blue(){
+    gpio_put(led_red_pino, 1);
+    gpio_put(led_blue_pino, 0);
+    gpio_put(led_green_pino, 1);
     
-    return true;
-}
+    add_repeating_timer_ms(3000, alternar_green, NULL, &timer_green);
+    
+    return false;
+} 
 
-void alterna_led_green(){
+bool alternar_green(){
+    gpio_put(led_red_pino, 0);
+    gpio_put(led_blue_pino, 0);
+    gpio_put(led_green_pino, 1);
     
-    return true;
+    add_repeating_timer_ms(3000, alternar_red, NULL, &timer_red);
+    
+    return false;
 }
