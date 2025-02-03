@@ -7,6 +7,10 @@ const uint8_t led_red_pino = 13;
 const uint8_t led_blue_pino = 12;
 const uint8_t led_green_pino = 11;
 
+volatile bool led_red_status = 0;
+volatile bool led_blue_status = 0;
+volatile bool led_green_status = 0;
+
 const uint8_t btn_a = 5;
 
 struct repeating_timer timer_red, timer_blue, timer_green;
@@ -15,7 +19,7 @@ bool alternar_red();
 bool alternar_blue();
 void iniciar_pinos();
 bool alternar_green();
-void gpio_irq_handler(uint gpio, uint32_t events);
+static void gpio_irq_handler(uint gpio, uint32_t events);
 
 int main() {
     stdio_init_all();
@@ -26,7 +30,17 @@ int main() {
     add_repeating_timer_ms(3000, alternar_red, NULL, &timer_red);
 
     while (true) {
-        printf("Status do Semáforo\n");
+        printf("Status do Semáforo\n\n");
+        if((led_red_status == 1) && (led_green_status == 1)){
+            printf("Vermelho: 0\n");
+            printf("Amarelo: 1\n");
+            printf("Verde: 0\n");
+        }
+        else{
+            printf("Vermelho: %d\n", led_red_status);
+            printf("Amarelo: 0\n");
+            printf("Verde: %d\n", led_green_status);
+        }
         sleep_ms(1000);
     }
 
@@ -49,9 +63,13 @@ void iniciar_pinos(){
 }
 
 bool alternar_red(){
-    gpio_put(led_red_pino, 1);
-    gpio_put(led_blue_pino, 0);
-    gpio_put(led_green_pino, 0);
+    led_red_status = 1;
+    led_blue_status = 0;
+    led_green_status = 0;
+
+    gpio_put(led_red_pino, led_red_status);
+    gpio_put(led_blue_pino, led_blue_status);
+    gpio_put(led_green_pino, led_green_status);
 
     add_repeating_timer_ms(3000, alternar_blue, NULL, &timer_blue);
 
@@ -59,9 +77,13 @@ bool alternar_red(){
 }
 
 bool alternar_blue(){
-    gpio_put(led_red_pino, 1);
-    gpio_put(led_blue_pino, 0);
-    gpio_put(led_green_pino, 1);
+    led_red_status = 1;
+    led_blue_status = 0;
+    led_green_status = 1;
+
+    gpio_put(led_red_pino, led_red_status);
+    gpio_put(led_blue_pino, led_blue_status);
+    gpio_put(led_green_pino, led_green_status);
     
     add_repeating_timer_ms(3000, alternar_green, NULL, &timer_green);
     
@@ -69,16 +91,20 @@ bool alternar_blue(){
 } 
 
 bool alternar_green(){
-    gpio_put(led_red_pino, 0);
-    gpio_put(led_blue_pino, 0);
-    gpio_put(led_green_pino, 1);
+    led_red_status = 0;
+    led_blue_status = 0;
+    led_green_status = 1;
+
+    gpio_put(led_red_pino, led_red_status);
+    gpio_put(led_blue_pino, led_blue_status);
+    gpio_put(led_green_pino, led_green_status);
     
     add_repeating_timer_ms(3000, alternar_red, NULL, &timer_red);
     
     return false;
 }
 
-void gpio_irq_handler(uint gpio, uint32_t events){
+static void gpio_irq_handler(uint gpio, uint32_t events){
     printf("BTN_A\n");
     reset_usb_boot(0, 0);
 }
