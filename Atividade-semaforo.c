@@ -3,18 +3,23 @@
 #include "pico/bootrom.h"
 #include "hardware/timer.h"
 
+//Declaração das variáveis para os pinos dos leds
 const uint8_t led_red_pino = 13;
 const uint8_t led_blue_pino = 12;
 const uint8_t led_green_pino = 11;
 
+//Declaração das variáveis para monitoramento do semáforo
 volatile bool led_red_status = 0;
 volatile bool led_blue_status = 0;
 volatile bool led_green_status = 0;
 
+//Declaração da variável para o pino do botão A da placa
 const uint8_t btn_a = 5;
 
+//Declaração da variável do tipo repeating_timer para uso na função de alarme
 struct repeating_timer timer_red, timer_blue, timer_green;
 
+//Declaração dos protótipos das funções
 bool alternar_red();
 bool alternar_blue();
 void iniciar_pinos();
@@ -22,13 +27,23 @@ bool alternar_green();
 static void gpio_irq_handler(uint gpio, uint32_t events);
 
 int main() {
+    //Inicializando a biblioteca e os pinos do código
     stdio_init_all();
     iniciar_pinos();
 
+    //Declaração da interrupção para entra no modo bootsel
     gpio_set_irq_enabled_with_callback(btn_a, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
 
+    //FUNCIONAMENTO DO CÓDIGO
+    /*O código funciona por meio de declaração de novos alarmes. Quando um alarme é acionado após a
+    sua rotina ser executada, é declarado um novo alarme para realizar a alternação dos estados do
+    led com esse novo alarme, tendo seu tempo de 3000 milissegundos, com o loop inifito da troca de
+    led se dando pela declaração de novos alarmes.*/
+
+    //Declaração do primeiro alarme do código
     add_repeating_timer_ms(3000, alternar_red, NULL, &timer_red);
 
+    //Loop para exibir o estado do semáforo
     while (true) {
         printf("Status do Semáforo\n\n");
         if((led_red_status == 1) && (led_green_status == 1)){
@@ -47,6 +62,7 @@ int main() {
     return 0;
 }
 
+//Função para configurar os pinos da placa
 void iniciar_pinos(){
     //Iniciando leds
     gpio_init(led_red_pino);
@@ -62,6 +78,7 @@ void iniciar_pinos(){
     gpio_pull_up(btn_a);
 }
 
+//Função callback que realiza alteração do led vermelho
 bool alternar_red(){
     led_red_status = 1;
     led_blue_status = 0;
@@ -76,6 +93,7 @@ bool alternar_red(){
     return false;
 }
 
+//Função callback que realiza alteração do led azul (amarelo)
 bool alternar_blue(){
     led_red_status = 1;
     led_blue_status = 0;
@@ -90,6 +108,7 @@ bool alternar_blue(){
     return false;
 } 
 
+//Função callback que realiza alteração do led verde
 bool alternar_green(){
     led_red_status = 0;
     led_blue_status = 0;
@@ -104,6 +123,7 @@ bool alternar_green(){
     return false;
 }
 
+//Função para interrupção do código
 static void gpio_irq_handler(uint gpio, uint32_t events){
     printf("BTN_A\n");
     reset_usb_boot(0, 0);
