@@ -80,16 +80,21 @@ void iniciar_pinos(){
 
 //Função callback que realiza alteração do led vermelho
 bool alternar_red(){
+    //Alteração das variáveis de estado dos leds
     led_red_status = 1;
     led_blue_status = 0;
     led_green_status = 0;
 
+    //Ligando e desligando os leds via variável.
     gpio_put(led_red_pino, led_red_status);
     gpio_put(led_blue_pino, led_blue_status);
     gpio_put(led_green_pino, led_green_status);
 
+    //Declaração de um novo alarme que irá alterar o estado do led
     add_repeating_timer_ms(3000, alternar_blue, NULL, &timer_blue);
 
+    /*Passando o parâmetro, false para que esse alarme não se repita,
+    somente com a nova declaração que irá ocorrer mais para frente no código.*/
     return false;
 }
 
