@@ -100,9 +100,9 @@ bool alternar_red(){
 
 //Função callback que realiza alteração do led azul (amarelo)
 bool alternar_blue(){
-    led_red_status = 1;
-    led_blue_status = 0;
-    led_green_status = 1;
+    led_red_status = 0;
+    led_blue_status = 1;
+    led_green_status = 0;
 
     gpio_put(led_red_pino, led_red_status);
     gpio_put(led_blue_pino, led_blue_status);
